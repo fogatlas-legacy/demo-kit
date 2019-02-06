@@ -1,0 +1,12 @@
+- hosts: all
+  become: yes
+  gather_facts: False
+  tasks:
+    - name: install python 2
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+
+# Install kubernetes
+- hosts: k8s-master, k8s-workers
+  become: yes
+  roles:
+    - role: kubeadm

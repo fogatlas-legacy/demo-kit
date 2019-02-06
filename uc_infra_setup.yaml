@@ -1,0 +1,25 @@
+externalendpoints:
+  - id: "cam1"
+    type: "camera"
+    name: "cam1"
+    description: "Traffic street camera"
+    location: "46.0656737,11.1540153"
+    region_id: 'EDGE'
+
+regions:
+  - id: "CLOUD"
+    tier: 0
+    location: "46.1093567,11.089455"
+  - id: "EDGE"
+    tier: 1
+    location: "46.0706631,11.1134498"
+
+relationships:
+  - id: "rel1"
+    endpoint_a: "CLOUD"
+    endpoint_b: "EDGE"
+    region_id: "CLOUD"
+    bandwidth_available: 200000
+    bandwidth_capacity: 200000
+    latency: 100
+    status: "up"

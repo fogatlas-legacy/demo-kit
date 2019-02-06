@@ -1,0 +1,5 @@
+[k8s-master]
+localhost ansible_connection=local
+
+[k8s-workers]
+localhost ansible_connection=local

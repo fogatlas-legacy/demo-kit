@@ -1,0 +1,330 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fa-inventory
+  namespace: default
+  labels:
+    app: fogatlas
+    component: fa-inventory
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  ports:
+  - port: 2380
+    name: peer
+  clusterIP: None
+  selector:
+    component: fa-inventory
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: fa-inventory
+  namespace: default
+  labels:
+    app: fogatlas
+    component: fa-inventory
+spec:
+  serviceName: fa-inventory
+  replicas: 3
+  template:
+    metadata:
+      name: fa-inventory
+      namespace: default
+      labels:
+        app: fogatlas
+        component: fa-inventory
+    spec:
+      serviceAccountName: default
+      nodeSelector:
+        tier: "0"
+      containers:
+      - name: fa-inventory
+        image: quay.io/coreos/etcd:v3.2.3
+        ports:
+        - containerPort: 2379
+          name: client
+        - containerPort: 2380
+          name: peer
+        env:
+        - name: CLUSTER_SIZE
+          value: "3"
+        - name: SET_NAME
+          value: "fa-inventory"
+        volumeMounts:
+        - name: data
+          mountPath: /var/run/fa-inventory
+        command:
+          - "/bin/sh"
+          - "-ecx"
+          - |
+            IP=$(hostname -i)
+
+            for i in $(seq 0 $((${CLUSTER_SIZE} - 1))); do
+              while true; do
+                echo "Waiting for ${SET_NAME}-${i}.${SET_NAME} to come up"
+                ping -W 1 -c 1 ${SET_NAME}-${i}.${SET_NAME} > /dev/null && break
+                sleep 1s
+              done
+            done
+
+            PEERS=""
+            for i in $(seq 0 $((${CLUSTER_SIZE} - 1))); do
+                PEERS="${PEERS}${PEERS:+,}${SET_NAME}-${i}=http://${SET_NAME}-${i}.${SET_NAME}:2380"
+            done
+
+            # start etcd. If cluster is already initialized the `--initial-*` options will be ignored.
+            exec etcd --name ${HOSTNAME} \
+              --listen-peer-urls http://${IP}:2380 \
+              --listen-client-urls http://${IP}:2379,http://127.0.0.1:2379 \
+              --advertise-client-urls http://${HOSTNAME}.${SET_NAME}:2379 \
+              --initial-advertise-peer-urls http://${HOSTNAME}.${SET_NAME}:2380 \
+              --initial-cluster-token etcd-cluster-1 \
+              --initial-cluster ${PEERS} \
+              --initial-cluster-state new \
+              --data-dir /var/run/fa-inventory/default.etcd
+      volumes:
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fa-inventory-ext
+  namespace: default
+  labels:
+    app: fogatlas
+    component: fa-inventory
+spec:
+  ports:
+  - port: 2379
+    name: client
+  selector:
+    component: fa-inventory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fa-apiserver
+  namespace: default
+  labels:
+    app: fogatlas
+    component: fa-apiserver
+spec:
+  type: NodePort
+  ports:
+    - name: api
+      targetPort: api
+      port: 8080
+      nodePort: 30003
+    - name: apispec
+      targetPort: apispec
+      port: 8081
+      nodePort: 30004
+  selector:
+    component: fa-apiserver
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: fa-apiserver
+  namespace: default
+  labels:
+    app: fogatlas
+    component: fa-apiserver
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fogatlas
+        component: fa-apiserver
+    spec:
+      serviceAccountName: default
+      nodeSelector:
+        tier: "0"
+      containers:
+        - name: api
+          image: fogatlas/apiserver:v2.0.0
+          ports:
+            - name: api
+              containerPort: 8081
+          env:
+          - name: "INVENTORY"
+            value: "http://fa-inventory-ext:2379"
+          - name: PORT
+            value: "8081"
+          readinessProbe:
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 15
+            httpGet:
+              path: /api/v2.0.0/nodes
+              port: api
+
+        - name: spec
+          image: fogatlas/apispec:v2.0.0
+          ports:
+            - name: apispec
+              containerPort: 8080
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fogatlas
+  namespace: default
+  labels:
+    app: fogatlas
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: fogatlas
+  labels:
+    app: fogatlas
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["extensions", "apps"]
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - patch
+  - update
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: fogatlas
+  labels:
+    app: fogatlas
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: fogatlas
+subjects:
+- kind: ServiceAccount
+  name: fogatlas
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: fa-orchestrator
+  namespace: default
+  labels:
+    app: fogatlas
+    component: fa-orchestrator
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fogatlas
+        component: fa-orchestrator
+    spec:
+      serviceAccountName: fogatlas
+      nodeSelector:
+        tier: "0"
+      containers:
+        - name: fa-orchestrator
+          image: fogatlas/orchestrator:v0.2.0
+          env:
+          - name: "API_SCHEMA"
+            value: "http"
+          - name: "API_ENDPOINT"
+            value: "fa-apiserver"
+          - name: "API_PORT"
+            value: "8080"
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: fa-monitor
+  namespace: default
+  labels:
+    app: fogatlas
+    component: fa-monitor
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fogatlas
+        component: fa-monitor
+    spec:
+      serviceAccountName: fogatlas
+      nodeSelector:
+        tier: "0"
+      containers:
+        - name: monitor
+          image: fogatlas/monitor:v1.3.0
+          env:
+          - name: ENDPOINT
+            value: "http://fa-apiserver:8080/api/v2.0.0"
+          - name: KUBE_NAMESPACE
+            value: "default"
+          - name: DEBUG
+            value: ""
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fa-dashboard
+  namespace: default
+  labels:
+    app: fogatlas
+spec:
+  type: NodePort
+  ports:
+    - name: topology
+      port: 80
+      targetPort: topology
+      nodePort: 30005
+  selector:
+    service: fa-dashboard
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: fa-topology
+  namespace: default
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fogatlas
+        service: fa-dashboard
+    spec:
+      serviceAccountName: fogatlas
+      # Always deploy the UI on the cloud node
+      nodeSelector:
+        tier: "0"
+      containers:
+      - name: topology
+        image: fogatlas/topology:v1.4.1
+        imagePullPolicy: Always
+        env:
+          - name: "API_SCHEME"
+            value: "http"
+          - name: API_HOST
+            value: "fa-apiserver"
+          - name: "API_PORT"
+            value: "8080"
+          - name: "API_VERSION"
+            value: "v2.0.0"
+        ports:
+          - name: topology
+            containerPort: 80

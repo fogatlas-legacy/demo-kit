@@ -1,0 +1,42 @@
+{
+  "name": "iot-app-cam1",
+  "description": "This is a standard multitier application composed by two microservices",
+  "externalendpoint_id": "cam1",
+  "status": "todeploy",
+  "dataflows": [
+    {
+      "source_id": "cam1",
+      "destination_id": "iot-app-face-detection",
+      "bandwidth_required": 300000,
+      "latency_required": 50
+    },
+    {
+      "source_id": "iot-app-face-detection",
+      "destination_id": "iot-app-face-recognition",
+      "bandwidth_required": 100000,
+      "latency_required": 200
+    }
+  ],
+  "microservices": [
+    {
+      "name": "iot-app-face-detection",
+      "description 1": "low computational requirements and high network requirements to cam1",
+      "cpu_required": "200m",
+      "memory_required": "100Mi",
+      "disk_required": "0Mi",
+      "region_required": "",
+      "price_required": -1,
+      "deployment_descriptor": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: iot-app-face-detection\n  namespace: default\nspec:\n  replicas: 1\n  template:\n    metadata:\n      labels:\n        name: iot-app-face-detection\n    spec:\n      containers:\n        - name: iot-app-face-detection\n          image: hello-world\n          ports:\n            - name: api\n              containerPort: 8000\n          resources:\n            requests:\n              memory: 100Mi\n              cpu: 0.2"
+    },
+    {
+      "name": "iot-app-face-recognition",
+      "description": "high computational requirements and low network requirements to iot-app-face-detection",
+      "cpu_required": "400m",
+      "memory_required": "250Mi",
+      "disk_required": "0Mi",
+      "region_required": "",
+      "price_required": -1,
+      "deployment_descriptor": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Deployment\",\"metadata\":{\"name\":\"iot-app-face-recognition\",\"namespace\":\"default\"},\"spec\":{\"replicas\":1,\"template\":{\"metadata\":{\"labels\":{\"name\":\"iot-app-face-recognition\"}},\"spec\":{\"containers\":[{\"name\":\"iot-app-face-recognition\",\"image\":\"hello-world\",\"ports\":[{\"name\":\"api\",\"containerPort\":8000}],\"resources\":{\"requests\":{\"memory\":\"250Mi\",\"cpu\":\"0.4\"}}}]}}}}"
+    }
+  ]
+}

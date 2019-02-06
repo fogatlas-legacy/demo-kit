@@ -1,0 +1,65 @@
+- name: Initialize kubernetes master
+  command: "kubeadm init --token {{ access_token }}
+  --apiserver-advertise-address {{ kubeadm_master_ip }}
+  --apiserver-cert-extra-sans {{ kubeadm_master_alternate_ips }}
+  --pod-network-cidr={{ kubeadm_pod_network_cidr }}
+  --skip-preflight-checks
+  --kubernetes-version {{ kubeadm_k8s_version }}"
+  args:
+    creates: /etc/kubernetes/pki
+
+- name: kubectl root - Ensure folder exists
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+
+- name: kubectl root - Configure kubeconfig file
+  copy:
+    remote_src: true
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ ansible_env.HOME }}/.kube/config"
+
+- name: kubectl vagrant - Ensure folder exists
+  file:
+    path: "/home/vagrant/.kube"
+    state: directory
+
+- name: kubectl vagrant - Configure kubeconfig file
+  copy:
+    remote_src: true
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/vagrant/.kube/config"
+    mode: "a+r"
+
+- name: Copy network plugin descriptor
+  copy:
+    content: "{{ kubeadm_network_plugin_descriptors_file }}"
+    dest: /root/network-plugin-descriptor.yml
+    owner: root
+    group: nogroup
+    mode: u+rw,g-wx,o-rwx
+  become: yes
+  when: kubeadm_network_plugin_descriptors_file != ""
+
+- name: Install pods network plugin from file
+  shell: "kubectl apply -f /root/network-plugin-descriptor.yml"
+  when: kubeadm_network_plugin_descriptors_file != ""
+
+- name: Install pods network plugin from URLs
+  shell: "kubectl apply -f {{ item }}"
+  with_items: "{{ kubeadm_network_plugin_descriptors_url }}"
+  when: kubeadm_network_plugin_descriptors_file == ''
+
+- name: Generate kubectl bash completion code
+  shell: "kubectl completion bash > /etc/kubernetes/kubectl_completion"
+  run_once: true
+
+- name: Activate kubectl bash completion code for root
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'source /etc/kubernetes/kubectl_completion'
+
+- name: Activate kubectl bash completion code for vagrant
+  lineinfile:
+    path: "/home/vagrant/.bashrc"
+    line: 'source /etc/kubernetes/kubectl_completion'

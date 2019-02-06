@@ -1,0 +1,14 @@
+---
+# defaults file for kubeadm
+kubeadm_network_plugin_descriptors_file: "{{ lookup('file', 'kube-flannel.yml') }}"
+kubeadm_pod_network_cidr: "10.244.0.0/16"
+kubeadm_k8s_version: 'v1.8.5'
+kubeadm_version: 1.8.5-00
+kubectl_version: 1.8.5-00
+kubelet_version: 1.8.5-00
+kubeadm_master_ip: ''
+# kubeadm_master_alternate_ips accepts one IP or a comma separated
+# list of IPs
+kubeadm_master_alternate_ips: "{{ kubeadm_master_ip }}"
+kubelet_node_ip: ''
+kubeadm_safe_deploy: true

@@ -1,0 +1,21 @@
+- name: Creates configuration directory
+  file: path=/etc/kubernetes state=directory
+
+- name: Check if k8s is already installed
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_installed
+
+- include_tasks: token_bootstrap.yml
+  when: not k8s_installed.stat.exists
+
+- include_tasks: token_update.yml
+  when: k8s_installed.stat.exists
+
+- name: Retrieve access token
+  command: "cat /etc/kubernetes/access_token"
+  register: res
+  changed_when: no
+
+- set_fact:
+    access_token: "{{ res.stdout }}"

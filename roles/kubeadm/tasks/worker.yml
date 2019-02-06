@@ -1,0 +1,16 @@
+- name: Join worker to cluster
+  command: "kubeadm join
+  --token {{ access_token }}
+  {{  kubeadm_master_ip }}:6443"
+  args:
+    creates: /etc/kubernetes/kubelet.conf
+  when: kubeadm_safe_deploy
+
+- name: Join (unsafe) worker to cluster
+  command: "kubeadm join
+  --skip-preflight-checks
+  --token {{ access_token }}
+  {{  kubeadm_master_ip }}:6443"
+  args:
+    creates: /etc/kubernetes/kubelet.conf
+  when: not kubeadm_safe_deploy

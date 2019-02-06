@@ -1,0 +1,38 @@
+---
+# tasks file for kubeadm
+
+- name: Include distribution specifc vars
+  include_vars: '{{ ansible_distribution }}.yml'
+
+- name: Ubuntu 16 install
+  include_tasks: Ubuntu.yml
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
+
+- name: Retrieve access token
+  include_tasks: token.yml
+  delegate_to: "{{ groups['k8s-master'][0] }}"
+
+- set_fact:
+    kubeadm_master_ip: "{{ hostvars[groups['k8s-master'][0]]['ansible_default_ipv4']['address'] }}"
+  when: kubeadm_master_ip == ''
+
+- name: Master setup
+  include_tasks: "master.yml"
+  when: "'k8s-master' in group_names"
+
+- name: Worker setup
+  include_tasks: "worker.yml"
+  when: "'k8s-workers' in group_names"
+
+- name: Re-configure kubelet to use node IP
+  template:
+    src: "kubelet.j2"
+    dest: "/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+    backup: "yes"
+  notify: restart kubelet
+  when: kubelet_node_ip != ''
+
+- name: Disable the warnings about invalid locale
+  file:
+   path: "/var/lib/cloud/instance/locale-check.skip"
+   state: "touch"

@@ -1,0 +1,6 @@
+- name: Generate access token
+  shell: "kubeadm token generate > access_token"
+  args:
+    chdir: "/etc/kubernetes/"
+  when:
+    - "'k8s-master' in group_names"

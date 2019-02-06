@@ -1,0 +1,23 @@
+- name: Check if a valid token is available
+  shell: kubeadm token list | cut -d ' ' -f 1 | tail -n +2
+  register: check_token
+  when:
+    - "'k8s-master' in group_names"
+    - k8s_installed.stat.exists
+
+- name: Set fact for valid token
+  sudo: yes
+  set_fact:
+    valid_token: "{{ check_token.stdout }}"
+  when:
+    - "'k8s-master' in group_names"
+    - k8s_installed.stat.exists
+    - check_token.stdout != ""
+
+- name: Create a new access token
+  shell: "kubeadm token create > access_token"
+  args:
+    chdir: "/etc/kubernetes/"
+  when:
+    - "'k8s-master' in group_names"
+    - valid_token is not defined

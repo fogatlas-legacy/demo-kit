@@ -1,0 +1,157 @@
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t broken-links:nil c:nil creator:nil
+#+OPTIONS: d:(not "LOGBOOK") date:t e:t email:nil f:t inline:t num:nil
+#+OPTIONS: p:nil pri:nil prop:nil stat:t tags:t tasks:t tex:t
+#+OPTIONS: timestamp:t title:t toc:t todo:t |:t
+#+TITLE: FogAtlas
+#+AUTHOR: FBK CREATE-NET
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+#+EXCLUDE_TAGS: noexport
+#+CREATOR: Emacs 25.1.1 (Org mode 9.0.5)
+
+* Introduction
+  FogAtlas is a software framework aiming to manage a geographically distributed and decentralized Fog Computing infrastructure providing computational, storage and network services close to the data sources and the users, embracing the Fog Computing paradigm. FogAtlas is able to manage the so called Cloud-to-Thing Continuum offering service-aware workload placement and zero-touch provisioning. It is an evolution of the well known paradigms of IaaS and PaaS adding the concept of "locality" to the traditional Cloud Computing model and easing the operations of a Fog Computing infrastructure.
+
+  See [[http://fogatlas.fbk.eu][http://fogatlas.fbk.eu]] for more information on the project.
+* Try FogAtlas
+  FogAtlas is composed by a set of microservices that can be installed on a Kubernetes cluster in order to extend k8s functionality to a Fog Computing
+  context. In this demo-kit you can interact with the following FogAtlas components:
+  - FogAtlas Topology UI: Web UI that geographically represents the infrastructure managed by FogAtlas.
+  - FogAtlas Apiserver: Documentation of the FogAtlas API
+  - FogAtlas Apispec: Implementation of the FogAtlas API
+
+  FogAtlas demo-kit relies on the following Open Source technologies:
+  - [[https://www.openstack.org/][OpenStack]]
+  - [[https://www.docker.com/][Docker]]
+  - [[https://kubernetes.io/][Kubernetes]]
+  - [[https://www.ansible.com/][Ansible]]
+** FogAtlas Demo-Kit
+   This demo-kit provides an all in one local (i.e. on your machine) environment by means of which you can play with Fogatlas. The environment is based on
+   a bunch of virtual machines managed by Vagrant.
+
+   The demo-kit creates a local virtual Kubernetes cluster, installs Fogatlas on it and finally shows Fogatlas in action with a sample application.
+   The main steps to complete the demo (detailed in the following sections) are:
+   1. Check/Install required dependencies on your laptop (see Requirements section)
+   2. Create the required virtual machines, deploy the k8s cluster, deploy FogAtlas (see Environment setup section)
+   3. Show some of the FogAtlas capabilities (see Run the demo section)
+** Requirements
+   All requirements are checked by the =setup_demo.sh= script during the /Preliminary Check/ and, if any requirement is not met, it will be reported before proceeding.
+   We try to keep the installation of external dependencies as less invasive as possible but the demo needs the following
+   (in parenthesis the versions already tested):
+
+   Operating System
+   - Ubuntu (16.04, 18.04)
+   - MacOS (10.14.x)
+
+   Additional packages
+   - [[https://www.vagrantup.com/downloads.html][Vagrant]] (2.0.3, 2.2.3)
+   - [[https://www.python.org/][Python]] (2.7)
+   - [[https://virtualenv.pypa.io/en/latest/][virtualenv]] (15.1.0)
+   - [[https://www.virtualbox.org/wiki/Downloads][Virtualbox]] (5.2)
+
+   Machine resources
+   - RAM: 2,5GB
+   - CPU: 4 vCPU
+
+** Environment setup
+   To create a demo environment run:
+   #+BEGIN_SRC sh
+   ./setup_demo.sh
+   #+END_SRC
+   By default 3 nodes will be created: one k8s master and two workers.
+
+   The worker nodes are set to belong to two different regions:
+   - CLOUD
+   - EDGE
+
+   The properties of the two regions (e.g. location, devices associated to the EDGE region - in this case a camera named cam1) and the properties of
+   the network connecting them are specified in the infrastructure descriptor file [[file:uc_infra_setup.yaml][uc_infra_setup.yaml]].
+
+   You can customize the characteristics and amount of the virtual nodes by editing the file =vagrant_config.yaml= before creating the environment.
+
+   The first setup needs to download packages from Internet; for this reason it could take a while and the time to complete depends on your Internet connection.
+
+** Run the demo
+   Launch the guided demo with =./run_demo.sh= and then follow the step-by-step messages on the terminal. You can also visualize the progress in the
+   FogAtlas Topology UI at [[http://localhost:30005][http://localhost:30005]].
+
+   This demo is focused on a typical use-case of video surveillance in a Smart City. The reference application collects and analyses the video stream coming from an
+   IoT device (a camera) directly connected to the EDGE region. Such application is composed by 2 different microservices (Docker containers): the first grabs the video
+   stream from the camera and, by means of a face-detection algorithm, extracts only the faces, while the second receives the cropped frames and provides face recognition.
+
+   Note: given that the main objective of the current version of the demo-kit is to demonstrate the ability of FogAtlas to perform a smart placement of microservices and
+   given that the Fog infrastructure is just simulated on local virtual machines, the business logic of the use-case described above is not implemented.
+   Indeed it is "simulated" using two simple and identical microservices containing the [[https://hub.docker.com/_/hello-world][hello-world]] docker image.
+
+   During  the demo, the same application described above (composed by two microservices) is submitted twice to FogAtlas with two different deployments descriptors:
+   - a traditional deployment, =app-cam1=, that considers only computational requirements for the workload and
+   - an IoT oriented deployment, =iot-app-cam1= that considers also network requirements between microservices composing the application.
+
+   Specific resource constraints are described in the deployment descriptors, saved respectively in the following files: [[file:uc-app-cam1.json][uc-app-cam1.json]] and
+   [[file:uc-iot-app-cam1.json][uc-iot-app-cam1.json]].
+
+   By processing these deployment descriptors, Fogatlas deploys the microservices on different regions based on the resource constrains they specify.
+
+* Operating with the demo-kit
+** Environment management
+   If you are not familiar with Vagrant, you can manage the environment following these tips:
+
+   Check the environment status
+   #+BEGIN_SRC
+   vagrant status
+   #+END_SRC
+
+   Pause the environment
+   #+BEGIN_SRC sh
+   vagrant suspend
+   #+END_SRC
+
+   Restore a suspended environment
+   #+BEGIN_SRC sh
+   vagrant resume
+   #+END_SRC
+
+   Delete the environment
+   #+BEGIN_SRC sh
+   vagrant destroy -f
+   #+END_SRC
+
+** Interact with FogAtlas demo-kit
+   FogAtlas demo-kit automatically exposes few services running in the k8s cluster on three fixed ports on your laptop in order to simplify the experimentation. You can access to those services on the following endpoints:
+   - FogAtlas API: [[http://localhost:30003/api/v2.0.0][http://localhost:30003/api/v2.0.0]]
+   - FogAtlas API documentation: [[http://localhost:30004][http://localhost:30004]]
+   - FogAtlas topology UI: [[http://localhost:30005][http://localhost:30005]]
+
+   You can experiment other deployments by using the [[https://github.com/fogatlas/fogatlasctl][fogatlasctl CLI]] and passing different deployment descriptors. This is not covered in the demo-kit but as an example take a look at the deployment files  =./uc-app-cam1.json= ans =./uc-iot-app-cam1=.
+
+   All other details on the fogatlasctl CLI can be found at: [[https://github.com/fogatlas/fogatlasctl][https://github.com/fogatlas/fogatlasctl]].
+
+* FogAtlas components License
+  FogAtlas components shipped in this demo-kit are distributed via Docker images available at: [[https://hub.docker.com/u/fogatlas][https://hub.docker.com/u/fogatlas]]
+
+  Copyright 2019 FBK CREATE-NET
+
+  Redistribution are permitted provided that the following conditions are met:
+  1. Redistributions retain the above copyright notice, this list of conditions and the following disclaimer.
+  2. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+* Demo-Kit License
+  Copyright 2018 FBK CREATE-NET
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  [[http://www.apache.org/licenses/LICENSE-2.0][http://www.apache.org/licenses/LICENSE-2.0]]
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  Note: this software uses third party components (see above) each with its proper license and warranty disclaimer. Therefore it is under the responsibility of the user
+  ensuring that the use of FogAtlas demo kit complies with those licenses and being aware of those disclaimers.

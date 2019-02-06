@@ -1,0 +1,9 @@
+---
+
+kubeadm_packages:
+  - docker.io
+  - kubelet={{ kubelet_version }}
+  - kubeadm={{ kubeadm_version }}
+  - kubectl={{ kubectl_version }}
+  - aufs-tools
+  - bash-completion
