@@ -1,0 +1,4 @@
+.vagrant/
+fogatlas_demo
+*.log
+*.retry
