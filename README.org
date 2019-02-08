@@ -103,17 +103,17 @@
    #+END_SRC
 
    Pause the environment
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC
    vagrant suspend
    #+END_SRC
 
    Restore a suspended environment
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC
    vagrant resume
    #+END_SRC
 
    Delete the environment
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC
    vagrant destroy -f
    #+END_SRC
 
