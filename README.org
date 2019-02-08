@@ -18,8 +18,8 @@
   FogAtlas is composed by a set of microservices that can be installed on a Kubernetes cluster in order to extend k8s functionality to a Fog Computing
   context. In this demo-kit you can interact with the following FogAtlas components:
   - FogAtlas Topology UI: Web UI that geographically represents the infrastructure managed by FogAtlas.
-  - FogAtlas Apiserver: Documentation of the FogAtlas API
-  - FogAtlas Apispec: Implementation of the FogAtlas API
+  - FogAtlas Apispec: Documentation of the FogAtlas API
+  - FogAtlas Apiserver: Implementation of the FogAtlas API
 
   FogAtlas demo-kit relies on the following Open Source technologies:
   - [[https://www.openstack.org/][OpenStack]]
@@ -32,9 +32,9 @@
 
    The demo-kit creates a local virtual Kubernetes cluster, installs Fogatlas on it and finally shows Fogatlas in action with a sample application.
    The main steps to complete the demo (detailed in the following sections) are:
-   1. Check/Install required dependencies on your laptop (see Requirements section)
-   2. Create the required virtual machines, deploy the k8s cluster, deploy FogAtlas (see Environment setup section)
-   3. Show some of the FogAtlas capabilities (see Run the demo section)
+   1. Check/Install required dependencies on your laptop (see [[#requirements][Requirements]] section)
+   2. Create the required virtual machines, deploy the k8s cluster, deploy FogAtlas (see [[#environment-setup][Environment setup]] section)
+   3. Show some of the FogAtlas capabilities (see [[#run-the-demo][Run the demo]] section)
 ** Requirements
    All requirements are checked by the =setup_demo.sh= script during the /Preliminary Check/ and, if any requirement is not met, it will be reported before proceeding.
    We try to keep the installation of external dependencies as less invasive as possible but the demo needs the following
