@@ -82,7 +82,7 @@
 
    Note: given that the main objective of the current version of the demo-kit is to demonstrate the ability of FogAtlas to perform a smart placement of microservices and
    given that the Fog infrastructure is just simulated on local virtual machines, the business logic of the use-case described above is not implemented.
-   Indeed it is "simulated" using two simple and identical microservices containing the [[https://hub.docker.com/_/hello-world][hello-world]] docker image.
+   Indeed it is "simulated" using two simple and identical microservices containing the [[https://hub.docker.com/r/jwilder/whoami][jwilder/whoami]] docker image.
 
    During  the demo, the same application described above (composed by two microservices) is submitted twice to FogAtlas with two different deployments descriptors:
    - a traditional deployment, =app-cam1=, that considers only computational requirements for the workload and

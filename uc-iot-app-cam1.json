@@ -26,7 +26,7 @@
       "disk_required": "0Mi",
       "region_required": "",
       "price_required": -1,
-      "deployment_descriptor": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: iot-app-face-detection\n  namespace: default\nspec:\n  replicas: 1\n  template:\n    metadata:\n      labels:\n        name: iot-app-face-detection\n    spec:\n      containers:\n        - name: iot-app-face-detection\n          image: hello-world\n          ports:\n            - name: api\n              containerPort: 8000\n          resources:\n            requests:\n              memory: 100Mi\n              cpu: 0.2"
+      "deployment_descriptor": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: iot-app-face-detection\n  namespace: default\nspec:\n  replicas: 1\n  template:\n    metadata:\n      labels:\n        name: iot-app-face-detection\n    spec:\n      containers:\n        - name: iot-app-face-detection\n          image: jwilder/whoami\n          ports:\n            - name: api\n              containerPort: 8000\n          resources:\n            requests:\n              memory: 100Mi\n              cpu: 0.2"
     },
     {
       "name": "iot-app-face-recognition",
@@ -36,7 +36,7 @@
       "disk_required": "0Mi",
       "region_required": "",
       "price_required": -1,
-      "deployment_descriptor": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Deployment\",\"metadata\":{\"name\":\"iot-app-face-recognition\",\"namespace\":\"default\"},\"spec\":{\"replicas\":1,\"template\":{\"metadata\":{\"labels\":{\"name\":\"iot-app-face-recognition\"}},\"spec\":{\"containers\":[{\"name\":\"iot-app-face-recognition\",\"image\":\"hello-world\",\"ports\":[{\"name\":\"api\",\"containerPort\":8000}],\"resources\":{\"requests\":{\"memory\":\"250Mi\",\"cpu\":\"0.4\"}}}]}}}}"
+      "deployment_descriptor": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Deployment\",\"metadata\":{\"name\":\"iot-app-face-recognition\",\"namespace\":\"default\"},\"spec\":{\"replicas\":1,\"template\":{\"metadata\":{\"labels\":{\"name\":\"iot-app-face-recognition\"}},\"spec\":{\"containers\":[{\"name\":\"iot-app-face-recognition\",\"image\":\"jwilder/whoami\",\"ports\":[{\"name\":\"api\",\"containerPort\":8000}],\"resources\":{\"requests\":{\"memory\":\"250Mi\",\"cpu\":\"0.4\"}}}]}}}}"
     }
   ]
 }
