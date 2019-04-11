@@ -156,4 +156,5 @@
   Note: this software uses third party components (see above) each with its proper license and warranty disclaimer. Therefore it is under the responsibility of the user
   ensuring that the use of FogAtlas demo kit complies with those licenses and being aware of those disclaimers.
 
-  Acknowledgement: FogAtlas is a project developed by the [[https://create-net.fbk.eu/rising/][RiSING unit]] in FBK CREATE-NET. This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 754514.
+* Acknowledgements
+  FogAtlas is a project developed by the [[https://create-net.fbk.eu/rising/][RiSING unit]] in FBK CREATE-NET. This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 754514.
