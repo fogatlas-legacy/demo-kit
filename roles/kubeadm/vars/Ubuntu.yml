@@ -1,7 +1,7 @@
 ---
 
 kubeadm_packages:
-  - docker.io
+  - docker.io={{ docker_version }}
   - kubelet={{ kubelet_version }}
   - kubeadm={{ kubeadm_version }}
   - kubectl={{ kubectl_version }}
