@@ -73,7 +73,7 @@ pip install -r requirements.txt
 set -e
 
 echo -e $GREEN"Creating the Kubernetes cluster... $RESET"
-vagrant up --provision --parallel
+vagrant up --provider virtualbox --provision --parallel
 
 # Check the cluster is up-and-running
 echo -e "$GREEN Ensure the k8s cluster is up-and-running... $RESET"
