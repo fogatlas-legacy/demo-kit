@@ -9,7 +9,7 @@
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
 
 - name: Retrieve access token
-  include_tasks: token.yml
+  import_tasks: token.yml
   delegate_to: "{{ groups['k8s-master'][0] }}"
 
 - set_fact:
