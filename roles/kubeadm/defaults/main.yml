@@ -11,6 +11,6 @@ kubeadm_master_ip: ''
 # list of IPs
 kubeadm_master_alternate_ips: "{{ kubeadm_master_ip }}"
 kubelet_node_ip: ''
-kubeadm_safe_deploy: true
+kubeadm_safe_deploy: false
 # Certified docker version
 docker_version: "18.06.1-0ubuntu1.2~16.04.1"
